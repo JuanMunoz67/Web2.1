@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        function validaColor(){
+            var color = document.getElementById("txtColor").value.trim();
+            if(color === ""){
+                alert("Por favor, ingresa un color.");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <form onsubmit="return validaColor();" action="segunda.php" method="POST">
+        Escribe un color en inglés:
+        <input type="text" name="txtColor" id="txtColor">
+        <input type="submit" value="Enviar">
+    </form>
+</body>
+</html>

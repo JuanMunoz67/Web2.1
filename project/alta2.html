@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Contactos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 50%;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+        input[type="text"], input[type="submit"], button {
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        input[type="submit"], button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover, button:hover {
+            background-color: #218838;
+        }
+        h1 {
+            color: #218838;
+        }
+        h2 {
+            color: #333;
+        }
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Gestión de Contactos</h1>
+
+        <button onclick="window.location.href='contactos/lista-contacto.php'">Ver Contactos</button>
+
+        <h2>Agregar Contacto</h2>
+        <form id="contactForm">
+            <input type="text" name="txtNombres" placeholder="Nombres" required>
+            <input type="text" name="txtTel" placeholder="Teléfono" required>
+            <input type="text" name="txtCorreo" placeholder="Correo" required>
+            <input type="submit" value="Agregar Contacto">
+        </form>
+
+        <!-- Mensajes de éxito o error -->
+        <div id="messageBox" class="message" style="display:none;"></div>
+    </div>
+
+    <script>
+        function displayMessage(message, type) {
+            let messageBox = document.getElementById("messageBox");
+            messageBox.style.display = "block";
+            messageBox.textContent = message;
+            messageBox.className = `message ${type}`;
+        }
+
+        document.getElementById("contactForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            
+            let formData = new FormData(this);
+
+            fetch("contactos/Agregar_contacto.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayMessage(data.message, "success");
+                    document.getElementById("contactForm").reset();  // Limpiar los campos del formulario
+                } else {
+                    displayMessage(data.message, "error");
+                }
+            })
+            .catch(error => {
+                displayMessage("Hubo un error al procesar la solicitud.", "error");
+                console.error("Error:", error);
+            });
+        });
+    </script>
+
+</body>
+</html>

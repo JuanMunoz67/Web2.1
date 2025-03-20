@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Contactos y Usuarios</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 350vh;
+            flex-direction: column;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 50%;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+        input[type="text"], input[type="email"], input[type="password"], input[type="submit"], button {
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%; 
+            box-sizing: border-box; 
+            font-size: 14px; 
+        }
+        input[type="submit"], button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover, button:hover {
+            background-color: #218838;
+        }
+        h1 {
+            color: #218838;
+        }
+        h2 {
+            color: #333;
+            margin-top: 50px;
+        }
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Gestión de Contactos</h1>
+        <button onclick="window.location.href='contactos/lista-contacto.php'">Ver Contactos</button>
+        
+        <h2>Agregar Contacto</h2>
+        <form id="addContactForm">
+            <input type="text" name="txtNombres" placeholder="Nombres" required>
+            <input type="text" name="txtTel" placeholder="Teléfono" required>
+            <input type="email" name="txtCorreo" placeholder="Correo" required>
+            <input type="submit" value="Agregar Contacto">
+        </form>
+
+        <h2>Eliminar Contacto</h2>
+        <form id="deleteContactForm">
+            <input type="text" name="txtId" placeholder="ID del contacto a eliminar" required pattern="^\d+$" title="Debe ser un ID numérico">
+            <input type="submit" value="Eliminar Contacto">
+        </form>
+
+        <h2>Actualizar Contacto</h2>
+        <form id="updateContactForm">
+            <input type="hidden" name="campo" value="nombres">
+            <input type="text" name="txtId" placeholder="ID" required>
+            <input type="text" name="txtValor" placeholder="Nuevo Nombre" required>
+            <input type="submit" value="Actualizar Nombre">
+        </form>
+
+        <form id="updateContactPhoneForm">
+            <input type="hidden" name="campo" value="telefono">
+            <input type="text" name="txtId" placeholder="ID" required>
+            <input type="text" name="txtValor" placeholder="Nuevo Teléfono" required pattern="^\d{10}$" title="Debe ser un número de 10 dígitos">
+            <input type="submit" value="Actualizar Teléfono">
+        </form>
+
+        <form id="updateContactEmailForm">
+            <input type="hidden" name="campo" value="correo">
+            <input type="text" name="txtId" placeholder="ID" required>
+            <input type="email" name="txtValor" placeholder="Nuevo Correo" required>
+            <input type="submit" value="Actualizar Correo">
+        </form>
+
+        <!-- Mensajes de exito o error -->
+        <div id="messageBox" class="message" style="display:none;"></div>
+    </div>
+
+    <div class="container">
+        <h1>Gestión de Usuarios</h1>
+        <button onclick="window.location.href='usuarios/lista-usuarios.php'">Ver Usuarios</button>
+
+        <h2>Agregar Usuario</h2>
+        <form id="addUserForm">
+            <input type="text" name="txtNombres" placeholder="Nombres" required>
+            <input type="email" name="txtCorreo" placeholder="Correo" required>
+            <input type="password" name="txtContrasena" placeholder="Contraseña" required>
+            <input type="submit" value="Agregar Usuario">
+        </form>
+
+        <h2>Eliminar Usuario</h2>
+        <form id="deleteUserForm">
+            <input type="text" name="txtId" placeholder="ID del usuario a eliminar" required pattern="^\d+$" title="Debe ser un ID numérico">
+            <input type="submit" value="Eliminar Usuario">
+        </form>        
+
+        <h2>Actualizar Usuario</h2>
+        <form id="updateUserNameForm">
+            <input type="hidden" name="campo" value="nombres">
+            <input type="text" name="txtId" placeholder="ID" required>
+            <input type="text" name="txtValor" placeholder="Nuevo Nombre" required>
+            <input type="submit" value="Actualizar Nombre">
+        </form>
+
+        <form id="updateUserEmailForm">
+            <input type="hidden" name="campo" value="correo">
+            <input type="text" name="txtId" placeholder="ID" required>
+            <input type="email" name="txtValor" placeholder="Nuevo Correo" required>
+            <input type="submit" value="Actualizar Correo">
+        </form>
+
+        <form id="updateUserPasswordForm">
+            <input type="hidden" name="campo" value="contrasena">
+            <input type="text" name="txtId" placeholder="ID" required>
+            <input type="password" name="txtValor" placeholder="Nueva Contraseña" required>
+            <input type="submit" value="Actualizar Contraseña">
+        </form>
+    </div>
+
+    <script>
+        // Función para mostrar mensajes
+        function displayMessage(message, type) {
+            let messageBox = document.getElementById("messageBox");
+            messageBox.style.display = "block";
+            messageBox.textContent = message;
+            messageBox.className = `message ${type}`;
+        }
+
+        // Función para manejar el envío de formularios mediante AJAX
+        function handleFormSubmit(formId, url) {
+            const form = document.getElementById(formId);
+            const formData = new FormData(form);
+
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayMessage(data.message, data.success ? "success" : "error");
+                if (data.success) {
+                    form.reset();  // Limpiar los campos si la operación fue exitosa
+                }
+            })
+            .catch(error => {
+                displayMessage("Hubo un error al procesar la solicitud.", "error");
+                console.error("Error:", error);
+            });
+        }
+
+        // Función de validación para correo y teléfono
+        function validateEmail(email) {
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return emailPattern.test(email);
+        }
+
+        function validatePhone(phone) {
+            const phonePattern = /^\d{10}$/;
+            return phonePattern.test(phone);
+        }
+
+        // Validación de correo para usuarios y contactos
+        document.getElementById("updateContactEmailForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            let email = document.getElementById("updateContactEmailForm").txtValor.value;
+            if (!validateEmail(email)) {
+                displayMessage("El correo ingresado no es válido.", "error");
+                return;
+            }
+            handleFormSubmit("updateContactEmailForm", "contactos/Actualizar_contacto.php");
+        });
+
+        document.getElementById("updateUserEmailForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            let email = document.getElementById("updateUserEmailForm").txtValor.value;
+            if (!validateEmail(email)) {
+                displayMessage("El correo ingresado no es válido.", "error");
+                return;
+            }
+            handleFormSubmit("updateUserEmailForm", "usuarios/Actualizar_usuario.php");
+        });
+
+        // Enviar datos para agregar contacto
+        document.getElementById("addContactForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            handleFormSubmit("addContactForm", "contactos/Agregar_contacto.php");
+        });
+
+        // Enviar datos para eliminar contacto
+        document.getElementById("deleteContactForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            handleFormSubmit("deleteContactForm", "contactos/Eliminar_contacto.php");
+        });
+
+        // Enviar datos para actualizar contacto
+        document.getElementById("updateContactForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            handleFormSubmit("updateContactForm", "contactos/Actualizar_contacto.php");
+        });
+
+        // Enviar datos para agregar usuario
+        document.getElementById("addUserForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            handleFormSubmit("addUserForm", "usuarios/Agregar_usuario.php");
+        });
+
+        // Enviar datos para eliminar usuario
+        document.getElementById("deleteUserForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            handleFormSubmit("deleteUserForm", "usuarios/Eliminar_usuario.php");
+        });
+
+        // Enviar datos para actualizar usuario
+        document.getElementById("updateUserNameForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            handleFormSubmit("updateUserNameForm", "usuarios/Actualizar_usuario.php");
+        });
+    </script>
+
+</body>
+</html>

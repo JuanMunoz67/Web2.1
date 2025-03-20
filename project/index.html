@@ -1,0 +1,220 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333333;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        input {
+            width: 92%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        h2 {
+            margin-top: 40px;
+        }
+        #cookieConsent {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #333;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+        }
+        #cookieConsent button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Iniciar Sesión</h2>
+        <input type="text" id="loginEmail" placeholder="Correo" required>
+        <input type="password" id="loginPassword" placeholder="Contraseña" required>
+        <label><input type="checkbox" id="rememberMe"> Recordarme</label>
+        <button id="iniciar" onclick="login()">Iniciar Sesión</button>
+
+        <h2>Registro</h2>
+        <input type="text" id="newName" placeholder="Nombre" required>
+        <input type="text" id="newEmail" placeholder="Correo" required>
+        <input type="password" id="newPass" placeholder="Contraseña" required>
+        <select id="userRole">
+            <option value="usuario">Usuario</option>
+            <option value="admin">Administrador</option>
+        </select>
+        <input type="password" id="adminKey" placeholder="Clave Admin" style="display:none;">
+        <button onclick="register()">Registrar</button>
+
+        <div id="messageBox" class="message" style="display:none;"></div>
+    </div>
+
+    <script>
+        document.getElementById("userRole").addEventListener("change", function() {
+            let adminKeyInput = document.getElementById("adminKey");
+            adminKeyInput.style.display = this.value === "admin" ? "block" : "none";
+        });
+
+        function setCookie(nombres, value, days) {
+            let date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = nombres + "=" + value + ";expires=" + date.toUTCString() + ";path=/";
+        }
+
+        function getCookie(nombres) {
+            let cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                let [key, value] = cookie.split("=");
+                if (key === nombres) return value;
+            }
+            return "";
+        }
+
+        window.onload = function() {
+            let cookieConsent = getCookie("cookieConsent");
+            if (!cookieConsent) {
+                document.getElementById("cookieConsent").style.display = "block";
+            }
+
+            let savedEmail = getCookie("userEmail");
+            let savedPassword = getCookie("userPassword");
+            if (savedEmail && savedPassword) {
+                document.getElementById("loginEmail").value = savedEmail;
+                document.getElementById("loginPassword").value = savedPassword;
+                document.getElementById("rememberMe").checked = true;
+            }
+        }
+
+        function acceptCookies() {
+            setCookie("cookieConsent", "true", 365);  //se guarda por 1 año
+            document.getElementById("cookieConsent").style.display = "none";
+        }
+
+        function displayMessage(message, type) {
+            let messageBox = document.getElementById("messageBox");
+            messageBox.style.display = "block";
+            messageBox.textContent = message;
+            messageBox.className = `message ${type}`;
+        }
+
+        function register() {
+            let nombres = document.getElementById("newName").value;
+            let correo = document.getElementById("newEmail").value;
+            let contrasena = document.getElementById("newPass").value;
+            let role = document.getElementById("userRole").value;
+            let adminKey = document.getElementById("adminKey").value;
+            
+            if (!nombres || !correo || !contrasena) {
+                displayMessage("Por favor, complete todos los campos", "error");
+                return;
+            }
+
+            if (role === "admin" && adminKey !== "1234") {
+                displayMessage("Clave de administrador incorrecta", "error");
+                return;
+            }
+
+            let data = { nombres, correo, contrasena, role };
+            if (role === "admin") {
+                data.adminKey = adminKey;
+            }
+
+            fetch("usuarios/register.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayMessage(data.message, data.success ? "success" : "error");
+            })
+            .catch(error => {
+                displayMessage("Error en el registro", "error");
+                console.error("Error en el registro:", error);
+            });
+        }
+
+        function login() {
+            let correo = document.getElementById("loginEmail").value;
+            let contrasena = document.getElementById("loginPassword").value;
+            let rememberMe = document.getElementById("rememberMe").checked;
+
+            fetch("usuarios/login.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ correo, contrasena })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (rememberMe) {
+                        setCookie("userEmail", correo, 30);  //son guardados por 30 dias
+                        setCookie("userPassword", contrasena, 30);  
+                    } else {
+                        setCookie("userEmail", "", -1);
+                        setCookie("userPassword", "", -1);
+                    }
+                    window.location.href = data.redirect;
+                } else {
+                    displayMessage(data.message, "error");
+                }
+            })
+            .catch(error => {
+                displayMessage("Error en el login", "error");
+                console.error("Error en el login:", error);
+            });
+        }
+    </script>
+</body>
+</html>
